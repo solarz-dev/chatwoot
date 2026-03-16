@@ -162,7 +162,8 @@ export default {
         this.inReplyTo?.id &&
         !this.isPrivate &&
         this.inboxHasFeature(INBOX_FEATURES.REPLY_TO) &&
-        !this.is360DialogWhatsAppChannel
+        !this.is360DialogWhatsAppChannel &&
+        !this.copilot.isActive.value
       );
     },
     showWhatsappTemplates() {
@@ -200,9 +201,13 @@ export default {
     },
     messagePlaceHolder() {
       if (this.isEditorDisabled) {
-        return this.isAWhatsAppChannel
-          ? this.$t('CONVERSATION.FOOTER.MESSAGING_RESTRICTED_WHATSAPP')
-          : this.$t('CONVERSATION.FOOTER.MESSAGING_RESTRICTED');
+        if (this.isAWhatsAppChannel) {
+          return this.$t('CONVERSATION.FOOTER.MESSAGING_RESTRICTED_WHATSAPP');
+        }
+        if (this.isAPIInbox) {
+          return this.$t('CONVERSATION.FOOTER.MESSAGING_RESTRICTED_API');
+        }
+        return this.$t('CONVERSATION.FOOTER.MESSAGING_RESTRICTED');
       }
       return this.isPrivate
         ? this.$t('CONVERSATION.FOOTER.PRIVATE_MSG_INPUT')
@@ -427,7 +432,7 @@ export default {
     },
     isEditorDisabled() {
       return (
-        this.isAWhatsAppChannel &&
+        (this.isAWhatsAppChannel || this.isAPIInbox) &&
         !this.isOnPrivateNote &&
         !this.currentChat.can_reply
       );
@@ -1241,6 +1246,7 @@ export default {
       :is-editor-disabled="isEditorDisabled"
       :is-message-length-reaching-threshold="isMessageLengthReachingThreshold"
       :characters-remaining="charactersRemaining"
+      :editor-content="message"
       :popout-reply-box="popOutReplyBox"
       @set-reply-mode="setReplyMode"
       @toggle-popout="togglePopout"
@@ -1459,7 +1465,7 @@ export default {
 }
 
 .reply-box__top {
-  @apply relative py-0 px-4 -mt-px;
+  @apply relative py-0 px-3 -mt-px;
 }
 
 .emoji-dialog {
